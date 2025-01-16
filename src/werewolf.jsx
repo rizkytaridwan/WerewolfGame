@@ -5,6 +5,7 @@ function WerewolfGame() {
   const [numberOfWerewolves, setNumberOfWerewolves] = useState('');
   const [numberOfSeers, setNumberOfSeers] = useState('');
   const [players, setPlayers] = useState([]);
+  const [initRoles, setInitRoles] = useState([]);
 
   const initializePlayers = () => {
     if (numberOfPlayers > 0 && numberOfWerewolves > 0 && numberOfSeers > 0) {
@@ -13,10 +14,12 @@ function WerewolfGame() {
         .concat(Array.from({ length: numberOfPlayers - numberOfWerewolves - numberOfSeers }, () => 'Villager'));
       
       const shuffledRoles = initialRoles.sort(() => 0.5 - Math.random());
+      setInitRoles(shuffledRoles);
 
       const playerSetup = Array.from({ length: numberOfPlayers }, (_, i) => ({
         id: i + 1,
-        role: shuffledRoles[i],
+        name: '',
+        role: null,
         showRole: false
       }));
       
@@ -24,8 +27,15 @@ function WerewolfGame() {
     }
   };
 
+  const handleNameInput = (index, name) => {
+    let updatedPlayers = [...players];
+    updatedPlayers[index].name = name;
+    setPlayers(updatedPlayers);
+  };
+
   const assignRole = (index) => {
     let updatedPlayers = [...players];
+    updatedPlayers[index].role = initRoles[index];
     updatedPlayers[index].showRole = true;
     setPlayers(updatedPlayers);
   };
@@ -41,7 +51,6 @@ function WerewolfGame() {
       <h1>Werewolf Game Setup</h1>
       {players.length === 0 && (
         <div>
-            <br/>
           <input
             type="number"
             min="1"
@@ -50,7 +59,6 @@ function WerewolfGame() {
             value={numberOfPlayers}
             onChange={(e) => setNumberOfPlayers(parseInt(e.target.value, 10))}
           />
-          <br/>
           <input
             type="number"
             min="1"
@@ -59,7 +67,6 @@ function WerewolfGame() {
             value={numberOfWerewolves}
             onChange={(e) => setNumberOfWerewolves(parseInt(e.target.value, 10))}
           />
-          <br/>
           <input
             type="number"
             min="1"
@@ -68,7 +75,6 @@ function WerewolfGame() {
             value={numberOfSeers}
             onChange={(e) => setNumberOfSeers(parseInt(e.target.value, 10))}
           />
-          <br/>
           <button onClick={initializePlayers}>Set Players</button>
         </div>
       )}
@@ -76,8 +82,14 @@ function WerewolfGame() {
         <div>
           {players.map((player, index) => (
             <div key={player.id}>
-              <button onClick={() => assignRole(index)}>
-                {player.showRole ? `Your role: ${player.role}` : `Player ${player.id} - Pick a Card`}
+              <input
+                placeholder="Enter player name"
+                value={player.name}
+                onChange={(e) => handleNameInput(index, e.target.value)}
+                disabled={player.showRole}
+              />
+              <button onClick={() => assignRole(index)} disabled={!player.name}>
+                {player.showRole ? `Your role: ${player.role}` : `Pick a Card`}
               </button>
               {player.showRole && <button onClick={() => hideRole(index)}>Hide Role</button>}
             </div>
