@@ -3,26 +3,35 @@ import { ArrowLeft, HelpCircle } from 'lucide-react';
 
 const WerewolfGame = () => {
   const [gameState, setGameState] = useState('setup');
+  const [roles, setRoles] = useState([{ name: 'Werewolf', count: 1 }, { name: 'Seer', count: 1 }, { name: 'Villager', count: 1 }]); // Default roles
   const [players, setPlayers] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [showRole, setShowRole] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedPlayerIndex, setSelectedPlayerIndex] = useState(null);
-  const [gameConfig, setGameConfig] = useState({
-    civilians: 5,
-    undercover: 3,
-    mrWhite: 1
-  });
+
+  const addRole = () => {
+    setRoles([...roles, { name: '', count: 1 }]);
+  };
+
+  const removeRole = (index) => {
+    const newRoles = roles.filter((_, i) => i !== index);
+    setRoles(newRoles);
+  };
+
+  const updateRole = (index, field, value) => {
+    const newRoles = roles.map((role, i) => {
+      if (i === index) {
+        return { ...role, [field]: value };
+      }
+      return role;
+    });
+    setRoles(newRoles);
+  };
 
   const initializePlayers = () => {
-    const totalPlayers = gameConfig.civilians + gameConfig.undercover + gameConfig.mrWhite;
-    const roles = [
-      ...Array(gameConfig.civilians).fill('Civilian'),
-      ...Array(gameConfig.undercover).fill('Werewolf'),
-      ...Array(gameConfig.mrWhite).fill('Seer')
-    ].sort(() => Math.random() - 0.5);
-
-    setPlayers(roles.map((role, index) => ({
+    const allRoles = roles.flatMap(role => Array(role.count).fill(role.name)).sort(() => Math.random() - 0.5);
+    setPlayers(allRoles.map((role, index) => ({
       id: index + 1,
       role,
       name: '',
@@ -57,7 +66,7 @@ const WerewolfGame = () => {
   const RoleModal = () => {
     let buttonColor;
     switch (selectedRole) {
-      case 'Civilian':
+      case 'Villager':
         buttonColor = 'bg-green-500';
         break;
       case 'Werewolf':
@@ -74,9 +83,7 @@ const WerewolfGame = () => {
       <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50">
         <div className="bg-gray-900 rounded-xl p-6 mx-4 w-full max-w-sm">
           <div className="w-16 h-16 rounded-full bg-gray-800 text-white flex items-center justify-center text-2xl mx-auto mb-4">
-            {selectedRole === 'Civilian' && 'C'}
-            {selectedRole === 'Werewolf' && 'W'}
-            {selectedRole === 'Seer' && 'S'}
+            {selectedRole.charAt(0)}
           </div>
           <h3 className="text-xl font-bold text-center mb-2 text-white">
             {selectedRole}
@@ -103,61 +110,49 @@ const WerewolfGame = () => {
         </div>
 
         <div className="flex-1 flex flex-col items-center">
-          <h2 className="text-white text-2xl mb-8">Pemain: {
-            gameConfig.civilians + gameConfig.undercover + gameConfig.mrWhite
-          }</h2>
+          <h2 className="text-white text-2xl mb-8">Setup Roles</h2>
           
           <div className="bg-gray-800/75 rounded-xl p-6 w-full max-w-sm">
-            <div className="flex justify-between items-center text-white mb-4">
-              <span>Civilian</span>
-              <div className="flex items-center gap-2">
-                <button 
-                  className="w-8 h-8 bg-black/50 rounded-full"
-                  onClick={() => setGameConfig({...gameConfig, civilians: Math.max(1, gameConfig.civilians - 1)})}>
-                  -
-                </button>
-                <span>{gameConfig.civilians}</span>
-                <button 
-                  className="w-8 h-8 bg-black/50 rounded-full"
-                  onClick={() => setGameConfig({...gameConfig, civilians: gameConfig.civilians + 1})}>
-                  +
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex justify-between items-center text-white mb-4">
-              <span>Werewolf</span>
-              <div className="flex items-center gap-2">
-                <button 
-                  className="w-8 h-8 bg-black/50 rounded-full"
-                  onClick={() => setGameConfig({...gameConfig, undercover: Math.max(1, gameConfig.undercover - 1)})}>
-                  -
-                </button>
-                <span>{gameConfig.undercover}</span>
-                <button 
-                  className="w-8 h-8 bg-black/50 rounded-full"
-                  onClick={() => setGameConfig({...gameConfig, undercover: gameConfig.undercover + 1})}>
-                  +
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex justify-between items-center text-white">
-              <span>Seer</span>
-              <div className="flex items-center gap-2">
-                <button 
-                  className="w-8 h-8 bg-black/50 rounded-full"
-                  onClick={() => setGameConfig({...gameConfig, mrWhite: Math.max(1, gameConfig.mrWhite - 1)})}>
-                  -
-                </button>
-                <span>{gameConfig.mrWhite}</span>
-                <button 
-                  className="w-8 h-8 bg-black/50 rounded-full"
-                  onClick={() => setGameConfig({...gameConfig, mrWhite: gameConfig.mrWhite + 1})}>
-                  +
+            {roles.map((role, index) => (
+              <div key={index} className="flex items-center mb-4">
+                <input
+                  type="text"
+                  value={role.name}
+                  onChange={(e) => updateRole(index, 'name', e.target.value)}
+                  placeholder="Role Name"
+                  className="flex-1 rounded-l-full p-2 text-black"
+                />
+                <div className="flex items-center">
+                  <button 
+                    onClick={() => updateRole(index, 'count', Math.max(1, role.count - 1))}
+                    className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white">
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={role.count}
+                    onChange={(e) => updateRole(index, 'count', parseInt(e.target.value))}
+                    min="1"
+                    className="w-16 text-center p-2 bg-gray-700 text-white"
+                  />
+                  <button 
+                    onClick={() => updateRole(index, 'count', role.count + 1)}
+                    className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white">
+                    +
+                  </button>
+                </div>
+                <button
+                  onClick={() => removeRole(index)}
+                  className="ml-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center">
+                  x
                 </button>
               </div>
-            </div>
+            ))}
+            <button
+              onClick={addRole}
+              className="w-full bg-blue-500 text-white rounded-full py-2">
+              Add Role
+            </button>
           </div>
 
           <button
@@ -205,7 +200,7 @@ const WerewolfGame = () => {
     return (
       <div className="flex flex-col h-screen bg-cover bg-center p-4" style={{ backgroundImage: 'url(/path/to/your/werewolf-background.jpg)' }}>
         <h2 className="text-white text-2xl text-center">Game Dimulai!</h2>
-        {/* Coming Soon */}
+        {/* Add your game play UI here */}
       </div>
     );
   }
