@@ -205,7 +205,7 @@ const WerewolfGame = () => {
     return (
       <div className="flex flex-col h-screen bg-cover bg-center p-4" style={{ backgroundImage: 'url(/path/to/your/werewolf-background.jpg)' }}>
         <h2 className="text-white text-2xl text-center">Game Dimulai!</h2>
-        {/* Add your game play UI here */}
+        {/* Coming Soon */}
       </div>
     );
   }
